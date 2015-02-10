@@ -198,7 +198,7 @@ class Wall{
         return false;
     }
 
-    public boolean move(Wall wall) {
+    public boolean move(Wall wall, int x,int y, Direction dir) {
         if(orient==wall.orient){
             if (orient == ORIENT.VERT) {
                 if(wallStartY == wall.wallStartY){
@@ -250,8 +250,8 @@ class Wall{
                 }
                 if(wallEndX == wall.wallStartX){
 
-                    if(wallStartX-2>=0){
-                        wallStartX-=2;
+                    if(wallStartX-1>=0){
+                        wallStartX-=1;
                         return true;
                     }
                     return false;
@@ -260,23 +260,33 @@ class Wall{
         }else{
             //TODO FROM MOVE LOGIC
             if(orient==ORIENT.VERT){
-                if(wallStartY-1>0){
-                    wallStartY-=1;
-                    return true;
+                if(wallStartY==y){
+                    if(wallStartY-1>=0){
+                        wallStartY-=1;
+                        return true;
+                    }
                 }
-                if(wallStartY+1<=Player.h-1){
-                    wallStartY+=1;
-                    return true;
+                if(wallEndY==y){
+                    if(wallStartY+1<Player.h-1){
+                        wallStartY+=1;
+                        return true;
+                    }
                 }
+
+
                 return false;
             }else{
-                if(wallStartX-1>=0){
-                    wallStartX-=1;
-                    return true;
+                if(wallStartX ==x){
+                    if(wallStartX-1>=0){
+                        wallStartX-=1;
+                        return true;
+                    }
                 }
-                if(wallStartX+1<Player.h-1){
-                    wallStartX+=1;
-                    return true;
+                if(wallEndX ==x){
+                    if(wallStartX+1<Player.h-1){
+                        wallStartX+=1;
+                        return true;
+                    }
                 }
             }
         }
@@ -290,6 +300,8 @@ class Mover{
     int id;
 
     Direction dir;
+
+    int move =0;
 
     int x=0;
 
@@ -332,20 +344,20 @@ class Mover{
     public boolean halfWay(){
         switch(id){
             case 0:
-
-                return x>Player.w/2;
-
             case 1:
-                return x<Player.w/2;
+                return move>Player.w/2;
+
+
 
             case 2:
-                return y>Player.h/2;
+                return move>Player.h/2;
             default:
                 return false;
         }
     }
 
     public String getCommand(){
+        move++;
         return dir.getDirection();
     }
     public Direction getDir(){
@@ -432,18 +444,20 @@ class NodePath{
     public NodePath(AStarResolver.Node finish){
         nodes.add(finish);
         AStarResolver.Node node =finish;
-        //System.err.println("PAth!"+node.x+" "+node.y +" ");
+       // System.err.println("PAth!"+node.x+" "+node.y +" ");
         while(node.parent!=null){
 
             nodes.add(node.parent);
-            //  System.err.println("PAth!"+node.x+" "+node.y +" ");
+            //System.err.println("PAth!"+node.x+" "+node.y +" ");
             node= node.parent;
         }
-
+        //System.err.println("PAth!"+node.x+" "+node.y +" ");
     }
     public Direction getNextDir(){
         AStarResolver.Node node = nodes.get(nodes.size()-2);
         AStarResolver.Node start = nodes.get(nodes.size()-1);
+        //System.err.println("PAth!"+node.y+" "+start.y +" ");
+
         if(start.y!=node.y){
             if(start.y>node.y){
                 return Direction.UP;
@@ -614,9 +628,11 @@ class AStarResolver{
         List<Node> close= new ArrayList<Node>();
         start.cost = 0;
         start.heuristic = start.distance(finish);
-
-      /*  System.err.println("Start?"+start.x+" "+start.y +" ");
-        System.err.println("Finish?"+finish.x+" "+finish.y +" ");*/
+        if(mId==2){
+         //   System.err.println("Start?"+start.x+" "+start.y +" ");
+           // System.err.println("Finish?"+finish.x+" "+finish.y +" ");
+        }
+      /* */
         open.add(start);
         while( open.size()>0){
             Node current = (Node) open.first();
@@ -651,7 +667,7 @@ class AStarResolver{
                 }
             }
         }
-        // System.err.println("NULL PAth?");
+        System.err.println("NULL PAth");
         return null;
     }
     public boolean checkFinish(Node current,Node finish){
@@ -675,78 +691,70 @@ class AStarResolver{
     }
 
 }
-class Player {
+class WallPlacer{
+    List<Mover>  enemys;
 
-    public static int w;
+    Mover mover;
 
-    public static int h;
+    Mover enemy;
 
-    static AStarResolver pathFinding= new AStarResolver();
+    int x;
 
-    static List<Mover>  enemys=  new ArrayList<Mover>();
+    int y;
 
-    static Mover mover;
+    Direction dir;
 
-    static String[] phrase = new String[]{"Stop Right There!!","LOL","LOOK OUT!","IT'S Not ME"};
+    ORIENT orient;
 
-    public static String GetPhrase(){
-        return phrase[(int)(Math.random()*(float)phrase.length)];
+    int beforeWallMy;
+
+    int beforeWallEnemy;
+
+    NodePath newMoverPath;
+
+    WallPlacer( List<Mover>  enemys,Mover enemy,Mover mover){
+        this.enemys = enemys;
+        this.mover = mover;
+        this.dir = enemy.lastPath.getNextDir();
+        this.enemy = enemy;
+
     }
-
-    public static boolean warAction(){
-
-        for(Mover enemy : enemys){
-            if(!enemy.isActive()){
-                continue;
-            }
-            // System.err.println("War?"+enemy.id);
-            enemy.lastPath =pathFinding.findPath(enemy.x,enemy.y,enemy.getFx(),enemy.getFy(),enemy.id);
-        }
-
-        for(Mover enemy : enemys){
-            if(!enemy.isActive()){
-                continue;
-            }
-            // System.err.println("War?"+enemy.id);
-            //System.err.println("War?"+enemy.id+" "+enemy.lastPath.nodes.size()+" "+mover.lastPath.nodes.size());
-            if(enemy.lastPath.nodes.size()<=mover.lastPath.nodes.size()){
-                switch(enemy.lastPath.getNextDir()){
-                    case DOWN:
-                        return PlaceWall(enemy.x,enemy.y+1,ORIENT.HOR,enemy);
+    boolean placeWall(){
+        beforeWallMy =mover.lastPath.nodes.size();
+        beforeWallEnemy =enemy.lastPath.nodes.size();
+       // System.err.println("War?"+enemy.id +" "+this.dir);
+            switch(this.dir){
+                case DOWN:
+                    return PlaceWall(enemy.x,enemy.y+1,ORIENT.HOR,enemy);
 
 
-                    case UP:
-                        return PlaceWall(enemy.x,enemy.y,ORIENT.HOR,enemy);
+                case UP:
+                    return PlaceWall(enemy.x,enemy.y,ORIENT.HOR,enemy);
 
-                    case RIGHT:
-                        return PlaceWall(enemy.x+1,enemy.y,ORIENT.VERT,enemy);
+                case RIGHT:
+                    return PlaceWall(enemy.x+1,enemy.y,ORIENT.VERT,enemy);
 
-                    case LEFT:
-                        return PlaceWall(enemy.x,enemy.y,ORIENT.VERT,enemy);
-
-                }
+                case LEFT:
+                    return PlaceWall(enemy.x,enemy.y,ORIENT.VERT,enemy);
 
             }
-        }
+
+
         return false;
-
-
-
     }
-
-    private static boolean checkAgainstWalls( Wall addon){
+    private  boolean checkAgainstWalls( Wall addon){
         return _checkAgainstWalls(addon,0);
 
     }
-    private static boolean _checkAgainstWalls( Wall addon,int count){
+    private  boolean _checkAgainstWalls( Wall addon,int count){
         count++;
-        if(count>10){
+        if(count>2){
             // System.err.println("_checkAgainstWalls recursion");
             return false;
         }
-        for(Wall wall :pathFinding.walls){
+        for(Wall wall :Player.pathFinding.walls){
             if(wall.botherYou(addon)){
-                if(!addon.move(wall)){
+                if(!addon.move(wall,x,y,dir)){
                     //System.err.println("_checkAgainstWalls move");
                     return false;
                 }
@@ -756,7 +764,10 @@ class Player {
         }
         return true;
     }
-    private static boolean PlaceWall(int x, int y,ORIENT orient,Mover enemy) {
+    private boolean PlaceWall(int x, int y,ORIENT orient,Mover enemy) {
+        this.x = x;
+        this.y = y;
+        this.orient = orient;
         Wall addon =new Wall (x,y,orient);
         addon.validate();
         // System.err.println("PlaceWall "+x+" "+y);
@@ -773,30 +784,119 @@ class Player {
         }
 
         //System.err.println("PlaceWall valide "+addon.wallStartX+" "+addon.wallStartY);
-        pathFinding.walls.add(addon);
-        pathFinding.wallCheck();
+        Player.pathFinding.walls.add(addon);
+        Player.pathFinding.wallCheck();
+        boolean canPlace =true;
         //System.err.println("AfterWall check");
-        enemy.lastPath =pathFinding.findPath(enemy.x,enemy.y,enemy.getFx(),enemy.getFy(),enemy.id);
-        NodePath path =pathFinding.findPath(mover.x,mover.y,mover.getFx(),mover.getFy(),mover.id);
+        for(Mover enemyone : enemys){
+            if(!enemyone.isActive()){
+                continue;
+            }
+            // System.err.println("War?"+enemy.id);
+            enemyone.lastPath =Player.pathFinding.findPath(enemyone.x,enemyone.y,enemyone.getFx(),enemyone.getFy(),enemyone.id);
+            if( enemyone.lastPath ==null){
+                canPlace=false;
+                break;
+            }
+        }
+
+        newMoverPath =Player.pathFinding.findPath(mover.x,mover.y,mover.getFx(),mover.getFy(),mover.id);
 
 
-        pathFinding.walls.remove(addon);
-        pathFinding.wallCheck();
-        if(enemy.lastPath==null){
+        Player.pathFinding.walls.remove(addon);
+        Player. pathFinding.wallCheck();
+        if(!canPlace){
             //   System.err.println("lastPath null");
 
             return false;
         }
 
-        if(path.nodes.size()!=mover.lastPath.nodes.size()){
-            //  System.err.println("Don't block my self Before"+mover.lastPath.nodes.size()+ " After"+path.nodes.size());
 
+        if(isGoodMove()){
+            System.out.println(addon.wallStartX +" "+addon.wallStartY +" "+commandOrient+" "+GetPhrase());
+            return true;
+        }else{
             return false;
+        }
+    }
+    public boolean isGoodMove(){
+
+
+        int diff =Math.abs(beforeWallEnemy-beforeWallMy);
+        int diffNow = Math.abs(enemy.lastPath.nodes.size()-beforeWallMy);
+        if(diff+2<diffNow){
+            return true;
+        }
+        if(  newMoverPath.nodes.size()!=mover.lastPath.nodes.size()){
+            return false;
+        }
+        if(mover.halfWay()){
+            switch(mover.id){
+                case 0:
+                    if(beforeWallMy>beforeWallEnemy){
+                        return true;
+                    }
+                    break;
+                case 1:
+                case 2:
+                    if(beforeWallMy>=beforeWallEnemy){
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+    static String[] phrase = new String[]{"Stop Right There!!","LOL","LOOK OUT!","IT'S Not ME"};
+
+    public static String GetPhrase(){
+        return phrase[(int)(Math.random()*(float)phrase.length)];
+    }
+
+
+}
+class Player {
+
+    public static int w;
+
+    public static int h;
+
+    static AStarResolver pathFinding= new AStarResolver();
+
+    static List<Mover>  enemys=  new ArrayList<Mover>();
+
+    static Mover mover;
+
+
+    public static boolean warAction(){
+
+        for(Mover enemy : enemys){
+            if(!enemy.isActive()){
+                continue;
+            }
+            // System.err.println("War?"+enemy.id);
+            enemy.lastPath =pathFinding.findPath(enemy.x,enemy.y,enemy.getFx(),enemy.getFy(),enemy.id);
+        }
+
+        for(Mover enemy : enemys){
+            if(!enemy.isActive()){
+                continue;
+            }
+            WallPlacer placer = new WallPlacer(enemys,enemy,mover);
+            if(placer.placeWall()){
+                return true;
+            }
+            // System.err.println("War?"+enemy.id);
+            //System.err.println("War?"+enemy.id+" "+enemy.lastPath.nodes.size()+" "+mover.lastPath.nodes.size());
 
         }
-        System.out.println(addon.wallStartX +" "+addon.wallStartY +" "+commandOrient+" "+GetPhrase());
-        return true;
+        return false;
+
+
+
     }
+
 
 
     public static void main(String args[]) {
