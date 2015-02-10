@@ -53,7 +53,12 @@ class Wall{
         wallStartY = y;
         this.orient = orient;
 
-        if(ORIENT.VERT ==orient){
+        callulateEnd();
+
+    }
+
+    public void callulateEnd() {
+        if(ORIENT.VERT ==this.orient){
             wallEndY = wallStartY+1;
             wallEndX = wallStartX;
 
@@ -62,36 +67,9 @@ class Wall{
             wallEndX = wallStartX+1;
 
         }
-
     }
 
-    public boolean expand(int x,int y,ORIENT orient ){
-        if(this.orient==orient){
 
-            if(ORIENT.VERT ==orient){
-                if(wallEndX+1==x){
-                    wallEndX=x+1;
-                    return true;
-                }
-                if(wallStartX==x+2){
-                    wallStartX=x;
-                    return true;
-                }
-            }else{
-                if(wallEndY+1==y){
-                    wallEndY=y+1;
-                    return true;
-                }
-                if(wallStartY==y+2){
-                    wallStartY=y;
-                    return true;
-                }
-
-            }
-        }
-        return false;
-
-    }
     public boolean canWalk(int x,int y,Direction dir){
         switch(dir){
             case DOWN:
@@ -103,7 +81,7 @@ class Wall{
                         return true;
                     }else{
 
-                        if(y==wallStartY-1){
+                        if(y+1==wallStartY){
                             return false;
                         }else{
                             return true;
@@ -118,7 +96,8 @@ class Wall{
                     if(x>wallEndX||x<wallStartX){
                         return true;
                     }else{
-                        if(y==wallStartY+1){
+                        if(y==wallStartY){
+
                             return false;
                         }else{
                             return true;
@@ -136,7 +115,7 @@ class Wall{
                         if(x==wallStartX-1){
                             return false;
                         }else{
-                           return true;
+                            return true;
                         }
                     }
                 }
@@ -148,7 +127,7 @@ class Wall{
                     if(y>wallEndY||y<wallStartY){
                         return true;
                     }else{
-                        if(x==wallStartX+1){
+                        if(x==wallStartX){
                             return false;
                         }else{
                             return true;
@@ -160,8 +139,154 @@ class Wall{
         return true;
 
     }
+
+    public void validate() {
+        if(orient==ORIENT.VERT) {
+            if (wallStartX <= 0) {
+                wallStartX = 1;
+            }
+            if (wallStartX >= Player.w ) {
+                wallStartX = Player.w - 1;
+            }
+            if (wallStartY < 0) {
+                wallStartY = 0;
+            }
+            if (wallStartY >= Player.h - 1) {
+                wallStartY = Player.h - 2;
+            }
+        }else{
+            if (wallStartX < 0) {
+                wallStartX = 0;
+            }
+            if (wallStartX >= Player.w - 1) {
+                wallStartX = Player.w - 2;
+            }
+            if (wallStartY <= 0) {
+                wallStartY = 1;
+            }
+            if (wallStartY >= Player.h ) {
+                wallStartY = Player.h - 1;
+            }
+        }
+        callulateEnd();
+    }
+
+    public boolean botherYou(Wall wall) {
+        if(orient==wall.orient) {
+            if (orient == ORIENT.VERT) {
+                if (wallStartX == wall.wallStartX&&(wallStartY == wall.wallStartY||wallStartY == wall.wallEndY||wallEndY==wall.wallStartY)){
+
+                    return true;
+                }
+            }else{
+                if (wallStartY == wall.wallStartY&&(wallStartX == wall.wallStartX||wallStartX == wall.wallEndX||wallEndX==wall.wallStartX)){
+                    return true;
+                }
+            }
+        }else{
+            if(orient==ORIENT.VERT){
+                if((wallStartX -1==wall.wallStartX)&&(wallStartY+1==wall.wallStartY)){
+                    return true;
+                }
+            }else{
+                if((wall.wallStartX -1==wallStartX)&&(wall.wallStartY+1==wallStartY)){
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
+
+    public boolean move(Wall wall) {
+        if(orient==wall.orient){
+            if (orient == ORIENT.VERT) {
+                if(wallStartY == wall.wallStartY){
+                    if(wallStartY-2>0){
+                        wallStartY-=2;
+                        return true;
+                    }
+                    if(wallStartY+2<=Player.h-1){
+                        wallStartY+=2;
+                        return true;
+                    }
+                    return false;
+                }
+                if(wallStartY == wall.wallEndY){
+
+                    if(wallStartY+1<=Player.h-1){
+                        wallStartY+=1;
+                        return true;
+                    }
+                    return false;
+                }
+                if(wallEndY == wall.wallStartY){
+
+                    if(wallStartY-1>0){
+                        wallStartY-=1;
+                        return true;
+                    }
+                    return false;
+                }
+            }else{
+                if(wallStartX == wall.wallStartX){
+                    if(wallStartX-2>=0){
+                        wallStartX-=2;
+                        return true;
+                    }
+                    if(wallStartX+2<Player.w-1){
+                        wallStartX+=2;
+                        return true;
+                    }
+                    return false;
+                }
+                if(wallStartX == wall.wallEndX){
+
+                    if(wallStartX+1<Player.h-1){
+                        wallStartX+=1;
+                        return true;
+                    }
+                    return false;
+                }
+                if(wallEndX == wall.wallStartX){
+
+                    if(wallStartX-2>=0){
+                        wallStartX-=2;
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        }else{
+            //TODO FROM MOVE LOGIC
+            if(orient==ORIENT.VERT){
+                if(wallStartY-1>0){
+                    wallStartY-=1;
+                    return true;
+                }
+                if(wallStartY+1<=Player.h-1){
+                    wallStartY+=1;
+                    return true;
+                }
+                return false;
+            }else{
+                if(wallStartX-1>=0){
+                    wallStartX-=1;
+                    return true;
+                }
+                if(wallStartX+1<Player.h-1){
+                    wallStartX+=1;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 class Mover{
+
+    NodePath lastPath;
+
     int id;
 
     Direction dir;
@@ -169,6 +294,7 @@ class Mover{
     int x=0;
 
     int y=0;
+    private boolean active;
 
     public void setCoor(int x,int y){
         this.x= x;
@@ -201,6 +327,21 @@ class Mover{
             default:
                 dir= Direction.DOWN;
                 break;
+        }
+    }
+    public boolean halfWay(){
+        switch(id){
+            case 0:
+
+                return x>Player.w/2;
+
+            case 1:
+                return x<Player.w/2;
+
+            case 2:
+                return y>Player.h/2;
+            default:
+                return false;
         }
     }
 
@@ -241,6 +382,14 @@ class Mover{
 
         }
         return 0;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }
 class SortedList {
@@ -283,19 +432,18 @@ class NodePath{
     public NodePath(AStarResolver.Node finish){
         nodes.add(finish);
         AStarResolver.Node node =finish;
+        //System.err.println("PAth!"+node.x+" "+node.y +" ");
         while(node.parent!=null){
-            System.err.println("path  " +node.x+" " +node.y);
-            nodes.add(node.parent);
 
+            nodes.add(node.parent);
+            //  System.err.println("PAth!"+node.x+" "+node.y +" ");
             node= node.parent;
         }
-        System.err.println("path  " +node.x+" " +node.y);
+
     }
     public Direction getNextDir(){
         AStarResolver.Node node = nodes.get(nodes.size()-2);
         AStarResolver.Node start = nodes.get(nodes.size()-1);
-        System.err.println("start " +start.x+" " +start.y);
-        System.err.println("node " +node.x+" " +node.y);
         if(start.y!=node.y){
             if(start.y>node.y){
                 return Direction.UP;
@@ -335,9 +483,7 @@ class AStarResolver{
         void check(Node neib,Direction dir){
             for(Wall wall : walls){
                 if(!wall.canWalk(x,y,dir)){
-                    System.err.println("Wall block path form " +x+" " +y +" " +dir.getDirection()) ;
-                    System.err.println("Wall " +wall.wallStartX+" " +wall.wallEndX) ;
-                    System.err.println("Wall " +wall.wallStartY+" " +wall.wallEndY) ;
+
                     return;
                 }
             }
@@ -361,9 +507,52 @@ class AStarResolver{
             }
         }
 
+        public boolean isHasCost(){
+            switch(mId){
+                case 0:
+                    if(x==Player.w-1){
+
+                        return false;
+                    }
+                    break;
+                case 1:
+                    if(x==0){
+
+                        return false;
+                    }
+                    break;
+                case 2:
+                    if(y==Player.h-1){
+
+                        return false;
+                    }
+                    break;
+
+            }
+            return true;
+        }
+
         public int distance(Node finish) {
+            switch(mId){
+                case 0:
+
+                    return Math.abs(finish.x -x);
+
+
+                case 1:
+
+                    return Math.abs(finish.x -x);
+
+                case 2:
+
+                    return Math.abs(finish.y -y);
+
+
+
+            }
             return Math.abs(finish.x -x)+ Math.abs(finish.y-y);
         }
+
     }
 
     public List<Node> allNode = new ArrayList<Node>();
@@ -372,6 +561,8 @@ class AStarResolver{
 
     public List<Wall> walls =  new ArrayList<Wall>();
 
+
+    private int mId =0;
 
     public void generate(){
         for(int x= 0;x<Player.w;x++){
@@ -390,23 +581,27 @@ class AStarResolver{
     public void wallCheck(){
         for(Node node :allNode){
             node.neibors.clear();
-            if(node.x>1){
+            if(node.x>0){
                 node.check(map.get(node.x-1).get(node.y),Direction.LEFT);
             }
             if(node.x<Player.w-1){
                 node.check(map.get(node.x+1).get(node.y),Direction.RIGHT);
             }
-            if(node.y>1){
+            if(node.y>0){
                 node.check(map.get(node.x).get(node.y-1),Direction.UP);
             }
             if(node.y<Player.h-1){
                 node.check(map.get(node.x).get(node.y+1),Direction.DOWN);
             }
+
+
         }
+
     }
 
 
-    public NodePath findPath(int x, int y, int fX,int fY){
+    public NodePath findPath(int x, int y, int fX,int fY,int mId){
+        this.mId  = mId;
         for(Node node : allNode){
             node.cost = 0;
             node.heuristic = 0;
@@ -414,20 +609,22 @@ class AStarResolver{
         }
         Node start =  map.get(x).get(y);
         Node finish =  map.get(fX).get(fY);
-        System.err.println("finding path form " +start.x+" " +start.y);
-        System.err.println("finding  path to" +finish.x+" " +finish.y);
+
         SortedList open  = new SortedList();
         List<Node> close= new ArrayList<Node>();
         start.cost = 0;
         start.heuristic = start.distance(finish);
+
+      /*  System.err.println("Start?"+start.x+" "+start.y +" ");
+        System.err.println("Finish?"+finish.x+" "+finish.y +" ");*/
         open.add(start);
         while( open.size()>0){
             Node current = (Node) open.first();
-            if(current==finish){
-
-                return new NodePath(finish);
+            if(checkFinish(current,finish)){
+                // System.err.println("NodePath?");
+                return new NodePath(current);
             }
-            System.err.println("path  " +current.x+" " +current.y);
+
             open.remove(current);
             close.add(current);
 
@@ -435,19 +632,46 @@ class AStarResolver{
                 if(close.contains(neighbor)){
                     continue;
                 }
-                int tempg = start.cost + 1;
+
+                int tempg = current.cost;
+                if(neighbor.isHasCost()){
+                    tempg    += 1;
+                }
+
                 if(!open.contains(neighbor)||tempg<neighbor.cost){
                     neighbor.setParent(current);
                     neighbor.cost = tempg;
                     neighbor.heuristic = neighbor.distance(finish);
+                  /*  if(mId!=1){
+                        System.err.println("PAth?"+neighbor.x+" "+neighbor.y +" "+neighbor.heuristic +" "+neighbor.cost);
+                    }*/
                     if(!open.contains(neighbor)){
                         open.add(neighbor);
                     }
                 }
             }
         }
-        System.err.println("Path NUll" );
+        // System.err.println("NULL PAth?");
         return null;
+    }
+    public boolean checkFinish(Node current,Node finish){
+        switch(mId){
+            case 0:
+            case 1:
+
+                return current.x ==finish.x;
+
+
+
+
+            case 2:
+
+                return current.y ==finish.y;
+
+
+
+        }
+        return true;
     }
 
 }
@@ -457,29 +681,172 @@ class Player {
 
     public static int h;
 
+    static AStarResolver pathFinding= new AStarResolver();
+
+    static List<Mover>  enemys=  new ArrayList<Mover>();
+
+    static Mover mover;
+
+    static String[] phrase = new String[]{"Stop Right There!!","LOL","LOOK OUT!","IT'S Not ME"};
+
+    public static String GetPhrase(){
+        return phrase[(int)(Math.random()*(float)phrase.length)];
+    }
+
+    public static boolean warAction(){
+
+        for(Mover enemy : enemys){
+            if(!enemy.isActive()){
+                continue;
+            }
+            // System.err.println("War?"+enemy.id);
+            enemy.lastPath =pathFinding.findPath(enemy.x,enemy.y,enemy.getFx(),enemy.getFy(),enemy.id);
+        }
+
+        for(Mover enemy : enemys){
+            if(!enemy.isActive()){
+                continue;
+            }
+            // System.err.println("War?"+enemy.id);
+            //System.err.println("War?"+enemy.id+" "+enemy.lastPath.nodes.size()+" "+mover.lastPath.nodes.size());
+            if(enemy.lastPath.nodes.size()<=mover.lastPath.nodes.size()){
+                switch(enemy.lastPath.getNextDir()){
+                    case DOWN:
+                        return PlaceWall(enemy.x,enemy.y+1,ORIENT.HOR,enemy);
+
+
+                    case UP:
+                        return PlaceWall(enemy.x,enemy.y,ORIENT.HOR,enemy);
+
+                    case RIGHT:
+                        return PlaceWall(enemy.x+1,enemy.y,ORIENT.VERT,enemy);
+
+                    case LEFT:
+                        return PlaceWall(enemy.x,enemy.y,ORIENT.VERT,enemy);
+
+                }
+
+            }
+        }
+        return false;
+
+
+
+    }
+
+    private static boolean checkAgainstWalls( Wall addon){
+        return _checkAgainstWalls(addon,0);
+
+    }
+    private static boolean _checkAgainstWalls( Wall addon,int count){
+        count++;
+        if(count>10){
+            // System.err.println("_checkAgainstWalls recursion");
+            return false;
+        }
+        for(Wall wall :pathFinding.walls){
+            if(wall.botherYou(addon)){
+                if(!addon.move(wall)){
+                    //System.err.println("_checkAgainstWalls move");
+                    return false;
+                }
+                addon.callulateEnd();
+                return _checkAgainstWalls(addon,count);
+            }
+        }
+        return true;
+    }
+    private static boolean PlaceWall(int x, int y,ORIENT orient,Mover enemy) {
+        Wall addon =new Wall (x,y,orient);
+        addon.validate();
+        // System.err.println("PlaceWall "+x+" "+y);
+        // System.err.println("PlaceWall valide "+addon.wallStartX+" "+addon.wallStartY);
+        char commandOrient;
+        if(ORIENT.HOR==orient){
+            commandOrient='H';
+        }else{
+            commandOrient='V';
+        }
+
+        if(!checkAgainstWalls(addon)){
+            return false;
+        }
+
+        //System.err.println("PlaceWall valide "+addon.wallStartX+" "+addon.wallStartY);
+        pathFinding.walls.add(addon);
+        pathFinding.wallCheck();
+        //System.err.println("AfterWall check");
+        enemy.lastPath =pathFinding.findPath(enemy.x,enemy.y,enemy.getFx(),enemy.getFy(),enemy.id);
+        NodePath path =pathFinding.findPath(mover.x,mover.y,mover.getFx(),mover.getFy(),mover.id);
+
+
+        pathFinding.walls.remove(addon);
+        pathFinding.wallCheck();
+        if(enemy.lastPath==null){
+            //   System.err.println("lastPath null");
+
+            return false;
+        }
+
+        if(path.nodes.size()!=mover.lastPath.nodes.size()){
+            //  System.err.println("Don't block my self Before"+mover.lastPath.nodes.size()+ " After"+path.nodes.size());
+
+            return false;
+
+        }
+        System.out.println(addon.wallStartX +" "+addon.wallStartY +" "+commandOrient+" "+GetPhrase());
+        return true;
+    }
+
+
     public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
         w = in.nextInt(); // width of the board
         h = in.nextInt(); // height of the board
         int playerCount = in.nextInt(); // number of players (2 or 3)
         int myId = in.nextInt(); // id of my player (0 = 1st player, 1 = 2nd player, ...)
-        Mover mover = new Mover(myId);
-        AStarResolver pathFinding= new AStarResolver();
+        mover = new Mover(myId);
+
+
         pathFinding.generate();
+        for (int i = 0; i < playerCount; i++) {
+            if (myId == i) {
+                continue;
+            }
+            enemys.add(new Mover(i));
+
+
+        }
         // game loop
         while (true) {
 
+            for (Mover enemy : enemys) {
+                enemy.setActive(false);
+            }
 
-            int myX =0;
-            int myY =0;
+            int myX = 0;
+            int myY = 0;
+            int enemyId = 0;
+            int myWallCnt = 0;
             for (int i = 0; i < playerCount; i++) {
 
                 int x = in.nextInt(); // x-coordinate of the player
                 int y = in.nextInt(); // y-coordinate of the player
-                if(myId==i){
-                    mover.setCoor(x,y);
-                }
                 int wallsLeft = in.nextInt(); // number of walls available for the player
+                if (myId == i) {
+                    mover.setCoor(x, y);
+                    myWallCnt = wallsLeft;
+                } else {
+                    enemys.get(enemyId).setCoor(x, y);
+                    if(x==-1&&y==-1&&wallsLeft==-1){
+                        enemys.get(enemyId).setActive(false);
+                    }else{
+                        enemys.get(enemyId).setActive(true);
+                    }
+                    enemyId++;
+
+                }
+
             }
             mover.resetDirection();
             pathFinding.walls.clear();
@@ -490,29 +857,26 @@ class Player {
                 int wallY = in.nextInt(); // y-coordinate of the wall
                 String wallOrientation = in.next(); // wall orientation ('H' or 'V')
                 ORIENT orient;
-                if(wallOrientation.equals("V")){
-                    orient= ORIENT.VERT;
-                }else{
-                    orient= ORIENT.HOR;
-                }
-                for(Wall wall:pathFinding.walls){
-                    if(wall.expand(wallX,wallY,orient)){
-                        continue;
-                    }
+                if (wallOrientation.equals("V")) {
+                    orient = ORIENT.VERT;
+                } else {
+                    orient = ORIENT.HOR;
                 }
 
-                pathFinding.walls.add(new Wall (wallX,wallY,orient));
+
+                pathFinding.walls.add(new Wall(wallX, wallY, orient));
             }
             pathFinding.wallCheck();
-            NodePath path= pathFinding.findPath(mover.x, mover.y, mover.getFx(), mover.getFy());
-            if(path!=null){
-                mover.setDir(path.getNextDir());
+            mover.lastPath = pathFinding.findPath(mover.x, mover.y, mover.getFx(), mover.getFy(), mover.id);
+            if (mover.lastPath != null) {
+                mover.setDir(mover.lastPath.getNextDir());
             }
 
             // Write an action using System.out.println()
             // To debug: System.err.println("Debug messages...");
-
-            System.out.println(mover.getCommand()); // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
+            if (myWallCnt == 0 || !warAction()) {
+                System.out.println(mover.getCommand()); // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
+            }
         }
     }
 }
